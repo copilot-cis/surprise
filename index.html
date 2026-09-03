@@ -297,13 +297,27 @@ function particles() {
 }
 
 function reset() {
-  busy = false;
+  // Убираем старые элементы и анимации
+  document.querySelectorAll('.particle').forEach(p => p.remove());
+
   result.classList.remove('show');
   dark.classList.remove('on');
   wait.classList.remove('show');
   boom.classList.remove('flash');
   intro.classList.remove('hidden');
   screen.classList.remove('shake');
+
+  // Принудительно перезапускаем CSS-анимации
+  void wait.offsetWidth;
+  void boom.offsetWidth;
+  void result.offsetWidth;
+
+  busy = false;
+
+  // Запускаем сюрприз заново
+  setTimeout(() => {
+    surprise();
+  }, 400);
 }
 
 function surprise() {
