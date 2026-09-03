@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СЮРПРИЗ</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{
+  display:flex;align-items:center;justify-content:center;
+  font-family:Arial,sans-serif;
+  background:radial-gradient(circle at center,#fff8dc 0,#f1e4ff 45%,#d9d7ff 100%);
+}
+.wrap{text-align:center;position:relative;z-index:5}
+button{
+  border:0;border-radius:24px;padding:24px 46px;
+  font-size:30px;font-weight:900;cursor:pointer;
+  background:#fff;box-shadow:0 15px 40px rgba(0,0,0,.2);
+  transition:.15s;
+}
+button:hover{transform:scale(1.05)}
+button:active{transform:scale(.94)}
+#result{
+  display:none;margin-top:30px;font-size:clamp(42px,10vw,120px);
+  font-weight:1000;letter-spacing:3px;
+  text-shadow:0 8px 0 rgba(0,0,0,.08);
+}
+#result.show{display:block;animation:epic .9s cubic-bezier(.15,1.6,.3,1)}
+@keyframes epic{
+  0%{opacity:0;transform:scale(.05) rotate(-25deg)}
+  45%{opacity:1;transform:scale(1.25) rotate(8deg)}
+  70%{transform:scale(.92) rotate(-3deg)}
+  100%{transform:scale(1) rotate(0)}
+}
+.shake{animation:shake .45s}
+@keyframes shake{
+  15%{transform:translateX(-14px) rotate(-3deg)}
+  30%{transform:translateX(14px) rotate(3deg)}
+  45%{transform:translateX(-10px)}
+  60%{transform:translateX(10px)}
+  75%{transform:translateX(-5px)}
+}
+.confetti{
+  position:fixed;top:-30px;width:12px;height:22px;
+  z-index:10;animation:fall linear forwards;
+}
+@keyframes fall{
+  to{transform:translate3d(var(--x),110vh,0) rotate(900deg)}
+}
+.flash{animation:flash .35s}
+@keyframes flash{50%{filter:brightness(1.7)}}
+.goat{
+  position:fixed;bottom:8px;left:50%;transform:translateX(-50%);
+  font-size:50px;opacity:0;z-index:4;pointer-events:none;
+}
+.goat.show{animation:goat 1.8s ease-out forwards}
+@keyframes goat{
+  0%{opacity:0;transform:translate(-50%,100px) scale(.4)}
+  25%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-55vh) scale(1.4) rotate(12deg)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button id="go">НАЖМИ МЕНЯ</button>
+  <div id="result">НАДЯ КОЗА 🐐</div>
+</div>
+<div id="goat" class="goat">🐐</div>
+
+<script>
+const button=document.getElementById('go');
+const result=document.getElementById('result');
+const goat=document.getElementById('goat');
+
+function confetti(){
+  const symbols=['🎉','🎊','✨','⭐','🐐','💥'];
+  for(let i=0;i<70;i++){
+    const el=document.createElement('div');
+    el.className='confetti';
+    el.textContent=symbols[Math.floor(Math.random()*symbols.length)];
+    el.style.left=Math.random()*100+'vw';
+    el.style.fontSize=(14+Math.random()*24)+'px';
+    el.style.setProperty('--x',(Math.random()*240-120)+'px');
+    el.style.animationDuration=(1.8+Math.random()*2.5)+'s';
+    el.style.animationDelay=(Math.random()*.35)+'s';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4500);
+  }
+}
+function sound(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const notes=[523.25,659.25,783.99,1046.5];
+    notes.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.frequency.value=f;o.type='triangle';
+      g.gain.setValueAtTime(.0001,ctx.currentTime+i*.09);
+      g.gain.exponentialRampToValueAtTime(.16,ctx.currentTime+i*.09+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+i*.09+.35);
+      o.connect(g);g.connect(ctx.destination);
+      o.start(ctx.currentTime+i*.09);o.stop(ctx.currentTime+i*.09+.36);
+    });
+  }catch(e){}
+}
+button.addEventListener('click',()=>{
+  result.classList.remove('show');void result.offsetWidth;result.classList.add('show');
+  button.classList.remove('shake');void button.offsetWidth;button.classList.add('shake');
+  document.body.classList.remove('flash');void document.body.offsetWidth;document.body.classList.add('flash');
+  confetti();sound();
+  goat.classList.remove('show');void goat.offsetWidth;goat.classList.add('show');
+});
+</script>
+</body>
+</html>
