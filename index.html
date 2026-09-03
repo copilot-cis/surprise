@@ -217,6 +217,42 @@ button:active {
     font-size: 11px;
     letter-spacing: 2px;
   }
+
+  /* ===== ИГРА 3 В РЯД ===== */
+  .game{position:absolute;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,#fff 0%,#fff4f9 55%,#ffddea 100%);overflow:auto;padding:24px 14px}
+  .game.show{display:flex}
+  .game-box{width:min(94vw,620px);text-align:center}
+  .game-title{margin:0 0 5px;font-size:clamp(30px,7vw,52px);font-weight:1000;color:#ff176f}
+  .game-subtitle{margin:0 0 14px;color:#777;font-size:14px}
+  .scoreline{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .score-pill{background:#fff;border-radius:999px;padding:8px 14px;font-weight:900;box-shadow:0 5px 18px rgba(0,0,0,.08)}
+  .board{width:min(90vw,520px);aspect-ratio:1;margin:0 auto;display:grid;grid-template-columns:repeat(8,1fr);gap:5px;padding:7px;border-radius:20px;background:rgba(255,255,255,.78);box-shadow:0 16px 45px rgba(255,23,111,.16);touch-action:none}
+  .game .cell{border:0;padding:0;margin:0;border-radius:12px;background:#fff;box-shadow:0 2px 7px rgba(0,0,0,.08);font-size:clamp(20px,7vw,42px);display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .12s ease,opacity .15s ease;min-width:0;min-height:0}
+  .game .cell.selected{transform:scale(1.12);outline:3px solid #ff4f91;z-index:2}
+  .game .cell.pop{animation:cellPop .25s ease forwards}
+  @keyframes cellPop{50%{transform:scale(1.25)}100%{transform:scale(0);opacity:0}}
+  .game-buttons{margin-top:15px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+  .game-btn{padding:12px 20px;font-size:15px}
+  .game-btn.dark-btn{background:#111}
+  .game-message{min-height:25px;margin-top:10px;font-weight:900;color:#ff176f}
+  .game-over{position:absolute;inset:0;background:rgba(5,5,7,.78);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .game-over.show{display:flex}
+  .game-over-card{background:#fff;border-radius:28px;padding:28px;width:min(90vw,420px);box-shadow:0 25px 70px rgba(0,0,0,.3)}
+  .game-over-card h2{margin:0 0 10px;color:#ff176f;font-size:34px}
+  .game-over-card p{margin:8px 0;font-size:18px}
+  .game-over-card button{margin-top:15px}
+
+
+.game-message.big-combo{
+  transform:scale(1.18);
+  font-weight:900;
+  text-transform:uppercase;
+  animation:comboPulse .65s ease-in-out 2;
+}
+@keyframes comboPulse{
+  0%,100%{transform:scale(1.05)}
+  50%{transform:scale(1.28)}
+}
 </style>
 </head>
 <body>
@@ -235,6 +271,34 @@ button:active {
     <h1>НАДЯ<br>КОЗА</h1>
     <div class="goat">🐐</div><br>
     <button class="again" id="again">ЕЩЁ РАЗ 😂</button>
+    <button class="again" id="gameOpen" style="opacity:1;background:#ff4f91;">🎮 ИГРАТЬ В 3 В РЯД</button>
+  </div>
+
+  
+  <div class="game" id="game">
+    <div class="game-box">
+      <h2 class="game-title">🐐 3 В РЯД</h2>
+      <p class="game-subtitle">Собирай ряды из коз! Меняй местами соседние смайлики.</p>
+      <div class="scoreline">
+        <div class="score-pill">🐐 Козы: <span id="goatCount">0</span></div>
+        <div class="score-pill">🏆 Счёт: <span id="gameScore">0</span></div>
+        <div class="score-pill">⏱️ <span id="gameTime">300</span></div>
+      </div>
+      <div class="board" id="board"></div>
+      <div class="game-message" id="gameMessage">Собери 3 козы в ряд!</div>
+      <div class="game-buttons">
+        <button class="game-btn dark-btn" id="gameRestart">🔄 ЗАНОВО</button>
+        <button class="game-btn" id="gameBack">← НАЗАД К СЮРПРИЗУ</button>
+      </div>
+    </div>
+    <div class="game-over" id="gameOver">
+      <div class="game-over-card">
+        <h2>ВРЕМЯ! 🐐</h2>
+        <p>Ты собрал коз: <b id="finalGoats">0</b></p>
+        <p>Твой счёт: <b id="finalScore">0</b></p>
+        <button class="game-btn" id="gameAgain">🎮 ЕЩЁ РАЗ</button>
+      </div>
+    </div>
   </div>
 
   <div class="tiny">СЮРПРИЗ • 100% НАУЧНО ДОКАЗАНО, ЧТО ГОВИСЯ ВАНАИТ</div>
@@ -358,6 +422,321 @@ function surprise() {
 
 mainBtn.addEventListener('click', surprise);
 again.addEventListener('click', reset);
+
+// ===== ИГРА 3 В РЯД =====
+const game=document.getElementById('game'),gameOpen=document.getElementById('gameOpen'),gameBack=document.getElementById('gameBack'),gameRestart=document.getElementById('gameRestart'),gameAgain=document.getElementById('gameAgain'),board=document.getElementById('board'),gameScoreEl=document.getElementById('gameScore'),goatCountEl=document.getElementById('goatCount'),gameTimeEl=document.getElementById('gameTime'),gameMessage=document.getElementById('gameMessage'),gameOver=document.getElementById('gameOver'),finalScore=document.getElementById('finalScore'),finalGoats=document.getElementById('finalGoats');
+
+const G=8;
+const symbols=['🐐','💖','💕','💗','✨','🎉','😂','⭐'];
+const GOAT='🐐';
+let grid=[],selected=null,score=0,goats=0,timeLeft=60,timer=null,gameRunning=false;
+let dragStart=null;
+
+function randomSymbol(){return symbols[Math.floor(Math.random()*symbols.length)]}
+
+function findMatches(){
+  const found=new Set();
+
+  // Горизонтальные ряды 3+
+  for(let r=0;r<G;r++){
+    let startCol=0;
+    for(let c=1;c<=G;c++){
+      if(c<G && grid[r][c]===grid[r][startCol]) continue;
+      if(c-startCol>=3){
+        for(let x=startCol;x<c;x++) found.add(`${r},${x}`);
+      }
+      startCol=c;
+    }
+  }
+
+  // Вертикальные ряды 3+
+  for(let c=0;c<G;c++){
+    let startRow=0;
+    for(let r=1;r<=G;r++){
+      if(r<G && grid[r][c]===grid[startRow][c]) continue;
+      if(r-startRow>=3){
+        for(let x=startRow;x<r;x++) found.add(`${x},${c}`);
+      }
+      startRow=r;
+    }
+  }
+
+  return [...found].map(x=>x.split(',').map(Number));
+}
+
+function makeGrid(){
+  // Пересоздаём поле без готовых рядов и гарантируем достаточно коз.
+  for(let attempt=0;attempt<500;attempt++){
+    grid=Array.from({length:G},()=>Array.from({length:G},randomSymbol));
+    const goatCount=grid.flat().filter(x=>x===GOAT).length;
+    if(!findMatches().length && goatCount>=6) return;
+  }
+
+  // Запасной вариант: строим поле по одной клетке так,
+  // чтобы сразу не появлялись тройки.
+  grid=Array.from({length:G},()=>Array(G).fill(null));
+  for(let r=0;r<G;r++){
+    for(let c=0;c<G;c++){
+      const choices=symbols.filter(s=>{
+        if(c>=2 && grid[r][c-1]===s && grid[r][c-2]===s) return false;
+        if(r>=2 && grid[r-1][c]===s && grid[r-2][c]===s) return false;
+        return true;
+      });
+      grid[r][c]=choices[Math.floor(Math.random()*choices.length)];
+    }
+  }
+
+  // Если коз мало — заменяем несколько клеток, проверяя отсутствие рядов.
+  let tries=0;
+  while(grid.flat().filter(x=>x===GOAT).length<6 && tries++<500){
+    const r=Math.floor(Math.random()*G),c=Math.floor(Math.random()*G);
+    if(grid[r][c]===GOAT) continue;
+    const old=grid[r][c];
+    grid[r][c]=GOAT;
+    if(findMatches().length) grid[r][c]=old;
+  }
+}
+
+function getCell(r,c){return board.children[r*G+c]}
+
+function renderBoard(){
+  board.innerHTML='';
+  for(let r=0;r<G;r++){
+    for(let c=0;c<G;c++){
+      const el=document.createElement('button');
+      el.className='cell';
+      el.type='button';
+      el.textContent=grid[r][c];
+      el.dataset.row=r;
+      el.dataset.col=c;
+
+      // Обычный режим: выбрать две соседние клетки.
+      el.addEventListener('click',()=>cellClick(r,c));
+
+      // На телефоне дополнительно можно просто провести пальцем
+      // в любую из 4 сторон — в том числе ВВЕРХ и ВНИЗ.
+      el.addEventListener('pointerdown',e=>{
+        if(!gameRunning) return;
+        dragStart={r,c,x:e.clientX,y:e.clientY};
+        try{el.setPointerCapture(e.pointerId)}catch(_){}
+      });
+      el.addEventListener('pointerup',e=>{
+        if(!gameRunning || !dragStart) return;
+        const dX=e.clientX-dragStart.x;
+        const dY=e.clientY-dragStart.y;
+        const from={r:dragStart.r,c:dragStart.c};
+        dragStart=null;
+
+        if(Math.max(Math.abs(dX),Math.abs(dY))<18) return;
+
+        let to={r:from.r,c:from.c};
+        if(Math.abs(dX)>Math.abs(dY)) to.c += dX>0 ? 1 : -1;
+        else to.r += dY>0 ? 1 : -1;
+
+        if(to.r>=0&&to.r<G&&to.c>=0&&to.c<G){
+          swapCells(from,to);
+        }
+      });
+
+      board.appendChild(el);
+    }
+  }
+}
+
+function adjacent(a,b){
+  return Math.abs(a.r-b.r)+Math.abs(a.c-b.c)===1;
+}
+
+function clearSelection(){
+  if(selected) getCell(selected.r,selected.c)?.classList.remove('selected');
+  selected=null;
+}
+
+function cellClick(r,c){
+  if(!gameRunning)return;
+
+  if(!selected){
+    selected={r,c};
+    getCell(r,c).classList.add('selected');
+    return;
+  }
+
+  if(selected.r===r&&selected.c===c){
+    clearSelection();
+    return;
+  }
+
+  if(!adjacent(selected,{r,c})){
+    clearSelection();
+    selected={r,c};
+    getCell(r,c).classList.add('selected');
+    return;
+  }
+
+  const a=selected,b={r,c};
+  clearSelection();
+  swapCells(a,b);
+}
+
+function swapCells(a,b){
+  if(!gameRunning || !adjacent(a,b)) return;
+
+  [grid[a.r][a.c],grid[b.r][b.c]]=[grid[b.r][b.c],grid[a.r][a.c]];
+
+  if(!findMatches().length){
+    [grid[a.r][a.c],grid[b.r][b.c]]=[grid[b.r][b.c],grid[a.r][a.c]];
+    renderBoard();
+    gameMessage.textContent='Так нельзя 😄 Нужен ход, который собирает 3 в ряд!';
+    return;
+  }
+
+  renderBoard();
+
+  // Каждый успешный обмен — это один ход.
+  gameMoveCount++;
+
+  // После каждых двух успешных ходов показываем случайную фразу.
+  if (gameMoveCount - lastPhraseMove >= 2) {
+    lastPhraseMove = gameMoveCount;
+
+    // Ждём, пока исчезновения/каскады закончатся, чтобы сообщение
+    // не было сразу перезаписано текстом о собранном ряде.
+    setTimeout(() => {
+      if (!gameRunning) return;
+      const text = bigComboMessages[Math.floor(Math.random() * bigComboMessages.length)];
+      gameMessage.textContent = text;
+      gameMessage.classList.add('big-combo');
+      setTimeout(() => gameMessage.classList.remove('big-combo'), 1300);
+    }, 750);
+  }
+
+  resolveMatches();
+}
+
+const bigComboMessages = [
+  'НАДЯ ГОРДИТСЯ ТОБОЙ',
+  'ТЫ КОЗЬЯ ЛЕГЕНДА!',
+  'ВОТ ЭТО КОЗЬЯ СИЛА!',
+  'КОЗЫ В ВОСТОРГЕ!'
+];
+let gameMoveCount = 0;
+let lastPhraseMove = -3; // фраза появляется каждые 2 успешных хода
+
+
+
+function resolveMatches(){
+  const matches=findMatches();
+  if(!matches.length){
+    gameMessage.textContent='Собирай любые 3 одинаковых! 🐐';
+    return;
+  }
+
+  matches.forEach(([r,c])=>getCell(r,c).classList.add('pop'));
+
+  // ВАЖНО: ряд можно собирать из ЛЮБОГО символа,
+  // но очки и счётчик даются ТОЛЬКО за коз.
+  const goatMatches=matches.filter(([r,c])=>grid[r][c]===GOAT).length;
+  goats+=goatMatches;
+
+  // Очки только за коз:
+  // 3 козы = +10, 4 козы = +25, 5 и больше = +50.
+  let goatPoints=0;
+  if(goatMatches>=5) goatPoints=50;
+  else if(goatMatches===4) goatPoints=25;
+  else if(goatMatches===3) goatPoints=10;
+  score+=goatPoints;
+
+  if(goatMatches>=4){
+    gameMessage.textContent=`🐐 КОЗЬЕ КОМБО! +${goatPoints}`;
+  }else if(goatMatches===3){
+    gameMessage.textContent='🐐 3 КОЗЫ! +10';
+  }else if(goatMatches>0){
+    gameMessage.textContent=`🐐 ${goatMatches} козы — пока без очков`;
+  }else{
+    gameMessage.textContent='Ряд собран! 😄 За этот ряд — 0 очков';
+  }
+
+  updateGameStats();
+
+  setTimeout(()=>{
+    for(const [r,c] of matches) grid[r][c]=null;
+
+    // Гравитация: всё падает вниз.
+    for(let c=0;c<G;c++){
+      const col=[];
+      for(let r=G-1;r>=0;r--){
+        if(grid[r][c]!==null) col.push(grid[r][c]);
+      }
+
+      for(let r=G-1;r>=0;r--){
+        grid[r][c]=col[G-1-r] ?? randomSymbol();
+      }
+    }
+
+    renderBoard();
+
+    // Каскады тоже считаются: любые тройки исчезают,
+    // а очки начисляются только за коз.
+    setTimeout(resolveMatches,80);
+  },230);
+}
+
+function updateGameStats(){
+  gameScoreEl.textContent=score;
+  goatCountEl.textContent=goats;
+  gameTimeEl.textContent=timeLeft;
+}
+
+function startGame(){
+  clearInterval(timer);
+  score=0;
+  goats=0;
+  timeLeft=300;
+  selected=null;
+  dragStart=null;
+  gameRunning=true;
+  gameOver.classList.remove('show');
+
+  makeGrid();
+  renderBoard();
+  updateGameStats();
+  gameMessage.textContent='Собирай любые 3 одинаковых! 🐐';
+
+  timer=setInterval(()=>{
+    timeLeft--;
+    updateGameStats();
+    if(timeLeft<=0) endGame();
+  },1000);
+}
+
+function endGame(){
+  clearInterval(timer);
+  gameRunning=false;
+  selected=null;
+  dragStart=null;
+  finalScore.textContent=score;
+  finalGoats.textContent=goats;
+  gameOver.classList.add('show');
+}
+
+gameOpen.addEventListener('click',()=>{
+  result.classList.remove('show');
+  game.classList.add('show');
+  startGame();
+});
+
+gameBack.addEventListener('click',()=>{
+  gameRunning=false;
+  clearInterval(timer);
+  selected=null;
+  dragStart=null;
+  game.classList.remove('show');
+  result.classList.add('show');
+});
+
+gameRestart.addEventListener('click',startGame);
+gameAgain.addEventListener('click',startGame);
+
 </script>
 </body>
 </html>
