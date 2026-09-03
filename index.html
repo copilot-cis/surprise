@@ -308,7 +308,27 @@ function particles() {
 }
 
 function reset() {
-  window.location.reload();
+  // Удаляем старые конфетти и коз
+  document.querySelectorAll('.particle').forEach(p => p.remove());
+
+  // Полностью сбрасываем состояние
+  result.classList.remove('show');
+  dark.classList.remove('on');
+  wait.classList.remove('show');
+  boom.classList.remove('flash');
+  intro.classList.remove('hidden');
+  screen.classList.remove('shake');
+
+  // Принудительно сбрасываем CSS-анимации
+  void result.offsetWidth;
+  void wait.offsetWidth;
+  void boom.offsetWidth;
+
+  // Теперь кнопка снова может запускать сюрприз
+  busy = false;
+
+  // Запускаем заново
+  surprise();
 }
 
 function surprise() {
