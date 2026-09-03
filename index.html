@@ -28,10 +28,11 @@
   }
 
   .intro {
-    text-align: center;
-    z-index: 10;
-    transition: opacity .35s ease, transform .35s ease;
-  }
+  text-align: center;
+  position: relative;
+  z-index: 100;
+  transition: opacity .35s ease, transform .35s ease;
+}
 
   .intro.hidden {
     opacity: 0;
@@ -47,21 +48,31 @@
   }
 
   button {
-    border: 0;
-    cursor: pointer;
-    color: white;
-    font-weight: 900;
-    letter-spacing: 1px;
-    border-radius: 999px;
-    padding: 20px 42px;
-    font-size: 21px;
-    background: linear-gradient(135deg, #ff4f91, #ff176f);
-    box-shadow: 0 14px 35px rgba(255, 23, 111, .28);
-    transition: transform .12s ease;
-  }
+  display: inline-block;
+  position: relative;
+  z-index: 100;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-weight: 900;
+  letter-spacing: 1px;
+  border-radius: 999px;
+  padding: 20px 42px;
+  font-size: 21px;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #ff4f91, #ff176f);
+  box-shadow: 0 14px 35px rgba(255, 23, 111, .28);
+  transition: transform .12s ease;
+  pointer-events: auto;
+}
 
-  button:hover { transform: scale(1.05); }
-  button:active { transform: scale(.96); }
+button:hover {
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(.96);
+}
 
   .dark {
     position: absolute;
@@ -297,27 +308,7 @@ function particles() {
 }
 
 function reset() {
-  // Убираем старые элементы и анимации
-  document.querySelectorAll('.particle').forEach(p => p.remove());
-
-  result.classList.remove('show');
-  dark.classList.remove('on');
-  wait.classList.remove('show');
-  boom.classList.remove('flash');
-  intro.classList.remove('hidden');
-  screen.classList.remove('shake');
-
-  // Принудительно перезапускаем CSS-анимации
-  void wait.offsetWidth;
-  void boom.offsetWidth;
-  void result.offsetWidth;
-
-  busy = false;
-
-  // Запускаем сюрприз заново
-  setTimeout(() => {
-    surprise();
-  }, 400);
+  window.location.reload();
 }
 
 function surprise() {
